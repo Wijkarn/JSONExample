@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException, ParseException {
@@ -60,19 +61,55 @@ public class Main {
 
     }
 
-    static void fetchJsonFromAPI() throws IOException {
+    static void fetchJsonFromAPI() throws IOException, ParseException {
         URL url = new URL("https://api.wheretheiss.at/v1/satellites/25544");
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
         conn.connect();
 
+        //Getting the response code
+        int responsecode = conn.getResponseCode();
+
         if(conn.getResponseCode() == 200){
             System.out.println("Koppling lyckades");
+
+
+
+
+
+            String inline = "";
+            Scanner scanner = new Scanner(url.openStream());
+
+            //Write all the JSON data into a string using a scanner
+            while (scanner.hasNext()) {
+                inline += scanner.nextLine();
+            }
+
+            //Close the scanner
+            scanner.close();
+
+            //Using the JSON simple library parse the string into a json object
+            JSONParser parse = new JSONParser();
+            JSONObject data_obj = (JSONObject) parse.parse(inline);
+
+            //Get the required object from the above created object
+            // JSONObject obj = (JSONObject) data_obj.get("name");
+            // System.out.println(obj.get("TotalRecovered"));
+
+
+            //Get the required data using its key
+            System.out.println("Name: " + data_obj.get("name"));
+            System.out.println("Id: " + data_obj.get("id"));
+            System.out.println("Units: " + data_obj.get("units"));
+            System.out.println("Velocity: " + data_obj.get("velocity"));
+            System.out.println("Latitude: " + data_obj.get("latitude"));
+            System.out.println("Longitude: " + data_obj.get("longitude"));
 
         }
         else{
             System.out.println("Koppling failed");
+            throw new RuntimeException("HttpResponseCode: " + conn.getResponseCode());
         }
     }
 
